@@ -17,7 +17,8 @@ module Qpx
 
     # Configuration defaults
     @@config = {
-      :api_key => 'b2af842a51f01435cdb7',
+      :browser_api_key =>'AIzaSyCLkbAPifQjnIkB1Xqc5xlKvHpOp-v2vlE',
+      :server_api_key =>'AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc' ,
       :base_headers => {content_type: :json, accept: :json},
     }
 
@@ -26,7 +27,8 @@ module Qpx
     # Configure through hash
     def self.configure(opts = {})
       opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
-      #@@config[:base_params] = {api_key: @@config[:api_key], ts_code: @@config[:ts_code], locale: @@config[:locale]}
+      @@config[:trips_url] = 'https://www.googleapis.com/qpxExpress/v1/trips/search'
+      @@config[:base_params] = {key: @@config[:server_api_key]}
     end
 
     # Configure through yaml file
@@ -57,6 +59,30 @@ module Qpx
     end
 
     def search_trips(departure_code, arrival_code, outbound_date, inbound_date, adults_count)
+      json_post_body = %Q!
+      {
+        "request": {
+            "slice": [
+                  {
+                          "origin": "LAX",
+                                  "destination": "NYC",
+                                          "date": "2014-10-16"
+                                                }
+                                                    ],
+                                                        "passengers": {
+                                                              "adultCount": 1,
+                                                                    "infantInLapCount": 0,
+                                                                          "infantInSeatCount": 0,
+                                                                                "childCount": 0,
+                                                                                      "seniorCount": 0
+                                                                                          },
+                                                                                              "solutions": 20,
+                                                                                                  "refundable": false
+                                                                                                    }
+                                                                                                    }
+      !
+      puts json_post_body
+      response = RestClient.post(@@config[:trips_url], json_post_body, {params: @@config[:base_params]}.merge(@@config[:base_headers]))
     end
 
   end
