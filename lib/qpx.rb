@@ -30,6 +30,7 @@ module Qpx
       :mongo_db_name => 'grappes_development',
       :mongo_currencies_coll => 'currencies',
       :mongo_airports_coll => 'airports',
+      :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__)
       
     }
 
@@ -174,9 +175,27 @@ module Qpx
         #puts currency['currency'],currency['rate']
       end
     end
-    
+
     def loadIATAData()
-      
+      File.open(@@config[:airports_filepath], "r") do |f|
+        f.each_line do |line|
+          #id,name,city,country,iataCode,icao,latitude,longitude,altitude,utc_timezone_offset,daily_save_time,timezone
+          fields = line.split(',')
+          @@config[:mongo_db][@@config[:mongo_airports_coll]].insert({
+             name:                fields[1].gsub('"',''),
+             city:                fields[2].gsub('"',''),
+             country:             fields[3].gsub('"',''),
+             iata_code:           fields[4].gsub('"',''),
+             icao:                fields[5].gsub('"',''),
+             latitude:            fields[6].to_f,
+             longitude:           fields[7].to_f,
+             altitude:            fields[8].to_f,
+             utc_timezone_offset: fields[9].to_f,
+             daily_save_time:     fields[10].gsub('"',''),
+             timezone:            fields[11].gsub('"','')
+          })
+        end
+      end
     end
 
   end
