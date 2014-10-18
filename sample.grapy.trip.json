@@ -1,0 +1,30 @@
+{
+    "_id" : ObjectId("54314ccf796177a37b050000"),
+    "start_city" : "Paris",
+    "end_city" : "Casablanca",
+    "end_country" : "Maroc",
+    "price" : 200,
+    "places_available" : 20,
+    "about" : "about",
+    "departure" : ISODate("2014-10-07T20:40:00.000Z"),
+    "arrival" : ISODate("2014-10-07T21:40:00.000Z"),
+    "stopover" : 1,
+    "company" : "Easy Jet",
+    "lowcost" : false,
+    "type" : "",
+    "start_airport" : "Paris Charles de Gaule",
+    "start_airport_code" : "CDG",
+    "end_airport_code" : "CMN",
+    "end_airport" : "Casablanca",
+    "coordinates" : [ 
+        -7.589722, 
+        33.367222
+    ],
+    "title" : "",
+    "prefered" : false,
+    "start_time" : null,
+    "end_time" : null,
+    "duration" : 100,
+    "updated_at" : ISODate("2014-10-05T14:05:39.616Z"),
+    "created_at" : ISODate("2014-10-05T13:51:14.891Z")
+}

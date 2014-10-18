@@ -1,0 +1,519 @@
+{
+ "kind": "qpxExpress#tripsSearch",
+ "trips": {
+  "kind": "qpxexpress#tripOptions",
+  "requestId": "fOM41bi2Nikzsikf90Kr5a",
+  "data": {
+   "kind": "qpxexpress#data",
+   "airport": [
+    {
+     "kind": "qpxexpress#airportData",
+     "code": "LAX",
+     "city": "LAX",
+     "name": "Los Angeles International"
+    },
+    {
+     "kind": "qpxexpress#airportData",
+     "code": "LGA",
+     "city": "NYC",
+     "name": "New York La Guardia"
+    },
+    {
+     "kind": "qpxexpress#airportData",
+     "code": "PHL",
+     "city": "PHL",
+     "name": "Philadelphia/Wilmington Int'l"
+    }
+   ],
+   "city": [
+    {
+     "kind": "qpxexpress#cityData",
+     "code": "LAX",
+     "name": "Los Angeles"
+    },
+    {
+     "kind": "qpxexpress#cityData",
+     "code": "NYC",
+     "name": "New York"
+    },
+    {
+     "kind": "qpxexpress#cityData",
+     "code": "PHL",
+     "name": "Philadelphia"
+    }
+   ],
+   "aircraft": [
+    {
+     "kind": "qpxexpress#aircraftData",
+     "code": "321",
+     "name": "Airbus A321"
+    },
+    {
+     "kind": "qpxexpress#aircraftData",
+     "code": "CRJ",
+     "name": "Canadair Reg. Jet"
+    },
+    {
+     "kind": "qpxexpress#aircraftData",
+     "code": "DH8",
+     "name": "De Havilland-Bombardier Dash-8"
+    }
+   ],
+   "tax": [
+    {
+     "kind": "qpxexpress#taxData",
+     "id": "ZP",
+     "name": "US Flight Segment Tax"
+    },
+    {
+     "kind": "qpxexpress#taxData",
+     "id": "XF",
+     "name": "US Passenger Facility Charge"
+    },
+    {
+     "kind": "qpxexpress#taxData",
+     "id": "AY",
+     "name": "US September 11th Security Fee"
+    },
+    {
+     "kind": "qpxexpress#taxData",
+     "id": "US_1",
+     "name": "US Transportation Tax"
+    }
+   ],
+   "carrier": [
+    {
+     "kind": "qpxexpress#carrierData",
+     "code": "US",
+     "name": "US Airways, Inc."
+    }
+   ]
+  },
+  "tripOption": [
+   {
+    "kind": "qpxexpress#tripOption",
+    "saleTotal": "USD327.60",
+    "id": "SeLOOOOLti3Ty46ijHukOB001",
+    "slice": [
+     {
+      "kind": "qpxexpress#sliceInfo",
+      "duration": 402,
+      "segment": [
+       {
+        "kind": "qpxexpress#segmentInfo",
+        "duration": 303,
+        "flight": {
+         "carrier": "US",
+         "number": "1926"
+        },
+        "id": "GMjTgNuEgnY2lHOG",
+        "cabin": "COACH",
+        "bookingCode": "L",
+        "bookingCodeCount": 3,
+        "marriedSegmentGroup": "0",
+        "leg": [
+         {
+          "kind": "qpxexpress#legInfo",
+          "id": "L5pMlPjQpXwtj8vj",
+          "aircraft": "321",
+          "arrivalTime": "2014-10-17T21:58-04:00",
+          "departureTime": "2014-10-17T13:55-07:00",
+          "origin": "LAX",
+          "destination": "PHL",
+          "originTerminal": "3",
+          "destinationTerminal": "B",
+          "duration": 303,
+          "onTimePerformance": 68,
+          "mileage": 2395,
+          "meal": "Food for Purchase",
+          "secure": true
+         }
+        ],
+        "connectionDuration": 52
+       },
+       {
+        "kind": "qpxexpress#segmentInfo",
+        "duration": 47,
+        "flight": {
+         "carrier": "US",
+         "number": "3864"
+        },
+        "id": "GyXwU2xR-fpL1IKT",
+        "cabin": "COACH",
+        "bookingCode": "L",
+        "bookingCodeCount": 3,
+        "marriedSegmentGroup": "0",
+        "leg": [
+         {
+          "kind": "qpxexpress#legInfo",
+          "id": "Lo+C2iOQVU7hadlS",
+          "aircraft": "CRJ",
+          "arrivalTime": "2014-10-17T23:37-04:00",
+          "departureTime": "2014-10-17T22:50-04:00",
+          "origin": "PHL",
+          "destination": "LGA",
+          "originTerminal": "F",
+          "destinationTerminal": "C",
+          "duration": 47,
+          "operatingDisclosure": "OPERATED BY US AIRWAYS EXPRESS-AIR WISCONSIN",
+          "onTimePerformance": 84,
+          "mileage": 95,
+          "secure": true
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "pricing": [
+     {
+      "kind": "qpxexpress#pricingInfo",
+      "fare": [
+       {
+        "kind": "qpxexpress#fareInfo",
+        "id": "A4X3Ny1ZeiTEUT+UQeZovTnxLOr8wH+5z2rMS0pBcNq6",
+        "carrier": "US",
+        "origin": "LAX",
+        "destination": "NYC",
+        "basisCode": "LA00ZNJ1"
+       }
+      ],
+      "segmentPricing": [
+       {
+        "kind": "qpxexpress#segmentPricing",
+        "fareId": "A4X3Ny1ZeiTEUT+UQeZovTnxLOr8wH+5z2rMS0pBcNq6",
+        "segmentId": "GyXwU2xR-fpL1IKT",
+        "freeBaggageOption": [
+         {
+          "kind": "qpxexpress#freeBaggageAllowance",
+          "bagDescriptor": [
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "ASSISTIVE DEVICES",
+            "count": 0,
+            "subcode": "0GM"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "INFANT CAR SEAT",
+            "count": 0,
+            "description": [
+             "Infant Car Seat"
+            ],
+            "subcode": "0G5"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "STROLLER OR PUSHCHAIR",
+            "count": 0,
+            "description": [
+             "Stroller/Pushchair"
+            ],
+            "subcode": "0F4"
+           }
+          ],
+          "pieces": 0
+         }
+        ]
+       },
+       {
+        "kind": "qpxexpress#segmentPricing",
+        "fareId": "A4X3Ny1ZeiTEUT+UQeZovTnxLOr8wH+5z2rMS0pBcNq6",
+        "segmentId": "GMjTgNuEgnY2lHOG",
+        "freeBaggageOption": [
+         {
+          "kind": "qpxexpress#freeBaggageAllowance",
+          "bagDescriptor": [
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "ASSISTIVE DEVICES",
+            "count": 0,
+            "subcode": "0GM"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "INFANT CAR SEAT",
+            "count": 0,
+            "description": [
+             "Infant Car Seat"
+            ],
+            "subcode": "0G5"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "STROLLER OR PUSHCHAIR",
+            "count": 0,
+            "description": [
+             "Stroller/Pushchair"
+            ],
+            "subcode": "0F4"
+           }
+          ],
+          "pieces": 0
+         }
+        ]
+       }
+      ],
+      "baseFareTotal": "USD283.72",
+      "saleFareTotal": "USD283.72",
+      "saleTaxTotal": "USD43.88",
+      "saleTotal": "USD327.60",
+      "passengers": {
+       "kind": "qpxexpress#passengerCounts",
+       "adultCount": 1
+      },
+      "tax": [
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "US_1",
+        "chargeType": "GOVERNMENT",
+        "code": "US",
+        "country": "US",
+        "salePrice": "USD21.28"
+       },
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "AY",
+        "chargeType": "GOVERNMENT",
+        "code": "AY",
+        "country": "US",
+        "salePrice": "USD5.60"
+       },
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "XF",
+        "chargeType": "GOVERNMENT",
+        "code": "XF",
+        "country": "US",
+        "salePrice": "USD9.00"
+       },
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "ZP",
+        "chargeType": "GOVERNMENT",
+        "code": "ZP",
+        "country": "US",
+        "salePrice": "USD8.00"
+       }
+      ],
+      "fareCalculation": "LAX US X/PHL US LGA 283.72LA00ZNJ1 USD 283.72 END ZP LAX PHL XT 21.28US 8.00ZP 5.60AY 9.00XF LAX4.50 PHL4.50",
+      "latestTicketingTime": "2014-10-17T16:54-04:00",
+      "ptc": "ADT"
+     }
+    ]
+   },
+   {
+    "kind": "qpxexpress#tripOption",
+    "saleTotal": "USD327.60",
+    "id": "SeLOOOOLti3Ty46ijHukOB002",
+    "slice": [
+     {
+      "kind": "qpxexpress#sliceInfo",
+      "duration": 410,
+      "segment": [
+       {
+        "kind": "qpxexpress#segmentInfo",
+        "duration": 311,
+        "flight": {
+         "carrier": "US",
+         "number": "796"
+        },
+        "id": "GcpEzTHPtWJu8VHn",
+        "cabin": "COACH",
+        "bookingCode": "L",
+        "bookingCodeCount": 2,
+        "marriedSegmentGroup": "0",
+        "leg": [
+         {
+          "kind": "qpxexpress#legInfo",
+          "id": "LMpj+znq7n2tT9HK",
+          "aircraft": "321",
+          "arrivalTime": "2014-10-17T19:11-04:00",
+          "departureTime": "2014-10-17T11:00-07:00",
+          "origin": "LAX",
+          "destination": "PHL",
+          "originTerminal": "3",
+          "destinationTerminal": "B",
+          "duration": 311,
+          "onTimePerformance": 74,
+          "mileage": 2395,
+          "meal": "Food for Purchase",
+          "secure": true
+         }
+        ],
+        "connectionDuration": 49
+       },
+       {
+        "kind": "qpxexpress#segmentInfo",
+        "duration": 50,
+        "flight": {
+         "carrier": "US",
+         "number": "6026"
+        },
+        "id": "GvVlfzIKLfqyHxMs",
+        "cabin": "COACH",
+        "bookingCode": "L",
+        "bookingCodeCount": 2,
+        "marriedSegmentGroup": "0",
+        "leg": [
+         {
+          "kind": "qpxexpress#legInfo",
+          "id": "L3sjzLqsOZtyLOIs",
+          "aircraft": "DH8",
+          "arrivalTime": "2014-10-17T20:50-04:00",
+          "departureTime": "2014-10-17T20:00-04:00",
+          "origin": "PHL",
+          "destination": "LGA",
+          "originTerminal": "F",
+          "destinationTerminal": "C",
+          "duration": 50,
+          "operatingDisclosure": "OPERATED BY US AIRWAYS EXPRESS-PIEDMONT AIRLINES",
+          "onTimePerformance": 67,
+          "mileage": 95,
+          "secure": true
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "pricing": [
+     {
+      "kind": "qpxexpress#pricingInfo",
+      "fare": [
+       {
+        "kind": "qpxexpress#fareInfo",
+        "id": "A4X3Ny1ZeiTEUT+UQeZovTnxLOr8wH+5z2rMS0pBcNq6",
+        "carrier": "US",
+        "origin": "LAX",
+        "destination": "NYC",
+        "basisCode": "LA00ZNJ1"
+       }
+      ],
+      "segmentPricing": [
+       {
+        "kind": "qpxexpress#segmentPricing",
+        "fareId": "A4X3Ny1ZeiTEUT+UQeZovTnxLOr8wH+5z2rMS0pBcNq6",
+        "segmentId": "GcpEzTHPtWJu8VHn",
+        "freeBaggageOption": [
+         {
+          "kind": "qpxexpress#freeBaggageAllowance",
+          "bagDescriptor": [
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "ASSISTIVE DEVICES",
+            "count": 0,
+            "subcode": "0GM"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "INFANT CAR SEAT",
+            "count": 0,
+            "description": [
+             "Infant Car Seat"
+            ],
+            "subcode": "0G5"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "STROLLER OR PUSHCHAIR",
+            "count": 0,
+            "description": [
+             "Stroller/Pushchair"
+            ],
+            "subcode": "0F4"
+           }
+          ],
+          "pieces": 0
+         }
+        ]
+       },
+       {
+        "kind": "qpxexpress#segmentPricing",
+        "fareId": "A4X3Ny1ZeiTEUT+UQeZovTnxLOr8wH+5z2rMS0pBcNq6",
+        "segmentId": "GvVlfzIKLfqyHxMs",
+        "freeBaggageOption": [
+         {
+          "kind": "qpxexpress#freeBaggageAllowance",
+          "bagDescriptor": [
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "ASSISTIVE DEVICES",
+            "count": 0,
+            "subcode": "0GM"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "INFANT CAR SEAT",
+            "count": 0,
+            "description": [
+             "Infant Car Seat"
+            ],
+            "subcode": "0G5"
+           },
+           {
+            "kind": "qpxexpress#bagDescriptor",
+            "commercialName": "STROLLER OR PUSHCHAIR",
+            "count": 0,
+            "description": [
+             "Stroller/Pushchair"
+            ],
+            "subcode": "0F4"
+           }
+          ],
+          "pieces": 0
+         }
+        ]
+       }
+      ],
+      "baseFareTotal": "USD283.72",
+      "saleFareTotal": "USD283.72",
+      "saleTaxTotal": "USD43.88",
+      "saleTotal": "USD327.60",
+      "passengers": {
+       "kind": "qpxexpress#passengerCounts",
+       "adultCount": 1
+      },
+      "tax": [
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "US_1",
+        "chargeType": "GOVERNMENT",
+        "code": "US",
+        "country": "US",
+        "salePrice": "USD21.28"
+       },
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "AY",
+        "chargeType": "GOVERNMENT",
+        "code": "AY",
+        "country": "US",
+        "salePrice": "USD5.60"
+       },
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "XF",
+        "chargeType": "GOVERNMENT",
+        "code": "XF",
+        "country": "US",
+        "salePrice": "USD9.00"
+       },
+       {
+        "kind": "qpxexpress#taxInfo",
+        "id": "ZP",
+        "chargeType": "GOVERNMENT",
+        "code": "ZP",
+        "country": "US",
+        "salePrice": "USD8.00"
+       }
+      ],
+      "fareCalculation": "LAX US X/PHL US LGA 283.72LA00ZNJ1 USD 283.72 END ZP LAX PHL XT 21.28US 8.00ZP 5.60AY 9.00XF LAX4.50 PHL4.50",
+      "latestTicketingTime": "2014-10-17T13:59-04:00",
+      "ptc": "ADT"
+     }
+    ]
+   }
+  ]
+ }
+}
