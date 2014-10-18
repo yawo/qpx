@@ -4,7 +4,8 @@ require 'restclient/components'
 require 'json'
 require 'rack/cache'
 require 'logger'
-
+require 'nokogiri'
+require 'mongo'
 
 module Qpx
   class Api
@@ -20,7 +21,15 @@ module Qpx
       :browser_api_key => 'AIzaSyCLkbAPifQjnIkB1Xqc5xlKvHpOp-v2vlE',
       :server_api_key => 'AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc' ,
       :base_headers => {content_type: :json, accept_encoding: :gzip, user_agent: :qpx_gem}, #, accept: :json
-      :trips_url => 'https://www.googleapis.com/qpxExpress/v1/trips/search'
+      :trips_url => 'https://www.googleapis.com/qpxExpress/v1/trips/search',
+      :currencies_url => 'http://www.ecb.int/stats/eurofxref/eurofxref-daily.xml',
+      :mongo_host => 'localhost',
+      :mongo_port => '27017',
+      :mongo_username => nil,
+      :mongo_password => nil,
+      :mongo_db_name => 'grappes_development',
+      :mongo_currencies_coll => 'currencies',
+      :mongo_airports_coll => 'airports',
       
     }
 
@@ -33,6 +42,9 @@ module Qpx
         #fields: 'trips/tripOption'
         fields: 'trips/tripOption(saleTotal,slice(duration,segment(flight)))'
       }
+      @@config[:mongo_db] = Mongo::MongoClient.new(@@config[:mongo_host], @@config[:mongo_port]).db(@@config[:mongo_db_name])
+      @@config[:mongo_db].authenticate(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
+      
     end
 
     # Configure through yaml file
@@ -137,6 +149,7 @@ module Qpx
 =end
     
     
+    
     def parseResponse(data)
       @@logger.debug(data)
       unless data.nil? or data == {}
@@ -150,6 +163,20 @@ module Qpx
           
         end
       end
+    end
+    
+    def loadCurrencies()
+      response = RestClient.get @@config[:currencies_url]
+      xml = Nokogiri::XML(response.body)
+      @@config[:mongo_db][@@config[:mongo_currencies_coll]].remove
+      xml.search('Cube/Cube/Cube').each do |currency|
+        @@config[:mongo_db][@@config[:mongo_currencies_coll]].insert({currency: currency['currency'], rate: currency['rate']})
+        #puts currency['currency'],currency['rate']
+      end
+    end
+    
+    def loadIATAData()
+      
     end
 
   end

@@ -19,8 +19,13 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.6"
+  spec.add_development_dependency "nokogiri"
+  spec.add_development_dependency "mongo"
+  spec.add_development_dependency "bson_ext"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rack-cache"
   spec.add_runtime_dependency "rest-client"
   spec.add_runtime_dependency "rest-client-components"
+  
+  
 end
