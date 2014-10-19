@@ -137,10 +137,10 @@ module Qpx
         fields: {key: 1}
       })
       if next_key.nil? or next_key.empty?
-        next_key['key'] 
-      else
         @@logger.error("No available Api Keys found")
         nil
+      else
+        next_key['key'] 
       end
     end
     
@@ -225,7 +225,7 @@ module Qpx
       #@@logger.debug(json_post_body)
       response = RestClient.post(@@config[:trips_url], json_post_body, {
           params: {
-            key: self.next_server_api_key,
+            key: Qpx::Api.next_server_api_key,
             fields: 'trips/tripOption(saleTotal,slice(duration,segment))'
           }
         }.merge(@@config[:base_headers]))
@@ -247,6 +247,7 @@ module Qpx
         #carriers  = data['trips']['data']['carrier']
         #airports  = data['trips']['data']['airport']
         trips     = data['trips']['tripOption']
+        @@logger.info "#{trips.count} trips found."
         trips.each do |trip|
           firstSegment = trip['slice'].first['segment'].first
           lastSegment = trip['slice'].last['segment'].last
@@ -279,7 +280,8 @@ module Qpx
             prefered: false,
             start_time: Time.parse(firstLeg['departureTime']).to_f,
             end_time: Time.parse(lastLeg['arrivalTime']).to_f,
-            duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] } #Can be computed again from start_time and end_time
+            duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }, #Can be computed again from start_time and end_time
+            search_date: Time.now
             })
         end
       end
@@ -291,9 +293,10 @@ module Qpx
         fields: {iata_code: 1, _id: 0}
       ).to_a
       first_class_arrivals.each do | first_class_arrival | 
-        "Searching #{departure_code} --> #{first_class_arrival['iata_code']} ..."
+        puts "Searching #{departure_code} --> #{first_class_arrival['iata_code']} ..."
         search_trips(departure_code, first_class_arrival['iata_code'], outbound_date, inbound_date, adults_count,max_price)
       end
+      "Done. #{first_class_arrivals.count} routes searched."
     end
   end
 end
