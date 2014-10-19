@@ -15,11 +15,9 @@ module Qpx
 
     @@logger = Logger.new(STDOUT)
     @@logger.level = Logger::DEBUG
-
     # Configuration defaults
     @@config = {
-      :browser_api_key => 'AIzaSyCLkbAPifQjnIkB1Xqc5xlKvHpOp-v2vlE',
-      :server_api_key => 'AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc' ,
+      :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc','test1','test2'] ,
       :base_headers => {content_type: :json, accept_encoding: :gzip, user_agent: :qpx_gem}, #, accept: :json
       :trips_url => 'https://www.googleapis.com/qpxExpress/v1/trips/search',
       :currencies_url => 'http://www.ecb.int/stats/eurofxref/eurofxref-daily.xml',
@@ -32,24 +30,136 @@ module Qpx
       :mongo_airports_coll => 'airports',
       :mongo_airlines_coll => 'airlines',
       :mongo_travels_coll => 'travels',
+      :mongo_server_apikeys_coll => 'server_apikeys',
       :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
-      :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__)
-      
-      
-    }
+      :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__),
+      :place_availables_mean => 10          
+    }   
+    
+    def self.config
+      @@config
+    end
 
+    def self.logger
+      @@logger
+    end
+
+    def initialize()
+      puts "QPX Api Initialized"
+    end
+    
+     
+    ####################################### General Data Loading #################################### 
+    def self.loadCurrencies()
+      @@logger.info("ReLoading Central European Bank Euro conversion rates.")
+      response = RestClient.get @@config[:currencies_url]
+      xml = Nokogiri::XML(response.body)
+      @@config[:mongo_db][@@config[:mongo_currencies_coll]].remove
+      xml.search('Cube/Cube/Cube').each do |currency|
+        @@config[:mongo_db][@@config[:mongo_currencies_coll]].insert({currency: currency['currency'], rate: currency['rate']})
+        #puts currency['currency'],currency['rate']
+      end
+      @@last_currencies_load_time = Time.new
+    end    
+    
+    def self.loadAirlinesData()
+      @@logger.info("ReLoading Airlines Data.")
+      @@config[:mongo_db][@@config[:mongo_airlines_coll]].remove     
+      File.open(@@config[:airlines_filepath], "r") do |f|
+        f.each_line do |line|
+          #id,name,alias,iata_code,icao_code,call_sign,country,active
+          fields = line.split(',')
+          @@config[:mongo_db][@@config[:mongo_airlines_coll]].insert({
+             name:                fields[1].gsub('"',''),
+             alias:               fields[2].gsub('"',''),
+             iata_code:           fields[3].gsub('"',''),
+             icao_code:           fields[4].gsub('"',''),
+             call_sign:           fields[5].gsub('"',''),
+             country:             fields[6].gsub('"',''),
+             active:              fields[7].gsub('"','')
+          })
+        end
+      end
+    end
+
+
+    def self.loadAirportsData()
+      @@logger.info("ReLoading Airports Data.")
+      @@config[:mongo_db][@@config[:mongo_airports_coll]].remove
+      File.open(@@config[:airports_filepath], "r") do |f|
+        f.each_line do |line|
+          #id,name,city,country,iataCode,icao,latitude,longitude,altitude,utc_timezone_offset,daily_save_time,timezone
+          fields = line.split(',')
+          @@config[:mongo_db][@@config[:mongo_airports_coll]].insert({
+             name:                fields[1].gsub('"',''),
+             city:                fields[2].gsub('"',''),
+             country:             fields[3].gsub('"',''),
+             iata_code:           fields[4].gsub('"',''),
+             icao:                fields[5].gsub('"',''),
+             latitude:            fields[6].to_f,
+             longitude:           fields[7].to_f,
+             altitude:            fields[8].to_f,
+             utc_timezone_offset: fields[9].to_f,
+             daily_save_time:     fields[10].gsub('"',''),
+             timezone:            fields[11].gsub('"','')
+          })
+        end
+      end
+    end
+    
+    def self.loadServerApiKeys()
+      @@logger.info("ReLoading Server Api Keys")
+      @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].remove
+      @@config[:server_api_keys].each do |apikey|
+         @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].insert({
+           key:             apikey,
+           last_call_date:  Time.now.to_date.to_time ,
+           day_api_calls:   0 
+         })
+      end
+    end
+    
+    
+    def self.next_server_api_key()
+      current_date = Time.now.to_date.to_time 
+      #Update previous days calls
+      @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].update(
+        {last_call_date:  {'$lt' => current_date}},
+        {'$set' => {last_call_date: current_date, day_api_calls: 0}},
+        {multi: true}
+      )
+      # Get an available key
+      next_key = @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].find_and_modify({
+        query: {day_api_calls:  {'$lt' => 50}},
+        update: {'$set' => {last_call_date: current_date}, '$inc' => {day_api_calls: 1}},
+        fields: {key: 1}
+      })
+      next_key['key'] unless next_key.nil? or next_key.empty?
+    end
+    
+    def self.euro_usd_rate
+      loadCurrencies if (@@last_currencies_load_time.nil? or Time.new - @@last_currencies_load_time > 60*60*24)
+      @@config[:mongo_db][@@config[:mongo_currencies_coll]].find({currency: 'USD'}).to_a[0]['rate'].to_f
+    end
+    
+    
+
+
+    ####################################### Configuration Helpers ####################################    
     @valid_config_keys = @@config.keys
 
     # Configure through hash
     def self.configure(opts = {})
-      opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
-      @@config[:base_params] = {key: @@config[:server_api_key],
-        #fields: 'trips/tripOption'
-        fields: 'trips/tripOption(saleTotal,slice(duration,segment))'
-      }
       @@config[:mongo_db] = Mongo::MongoClient.new(@@config[:mongo_host], @@config[:mongo_port]).db(@@config[:mongo_db_name])
       @@config[:mongo_db].authenticate(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
       
+      opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }        
+      #Load general Data
+      self.loadCurrencies
+      self.loadAirlinesData
+      self.loadAirportsData
+      self.loadServerApiKeys   
+      'QPX is Configured and ready !'
     end
 
     # Configure through yaml file
@@ -66,18 +176,6 @@ module Qpx
 
     #Configure defaults
     self.configure
-
-    def self.config
-      @@config
-    end
-
-    def self.logger
-      @@logger
-    end
-
-    def initialize()
-      puts "QPX Api Initialized"
-    end
 
 
     ####################################### API Calls ####################################
@@ -118,7 +216,13 @@ module Qpx
       }
       !
       #@@logger.debug(json_post_body)
-      response = RestClient.post(@@config[:trips_url], json_post_body, {params: @@config[:base_params]}.merge(@@config[:base_headers]))
+      response = RestClient.post(@@config[:trips_url], json_post_body, {
+          params: {
+            key: self.next_server_api_key,
+            fields: 'trips/tripOption(saleTotal,slice(duration,segment))'
+          }
+        }.merge(@@config[:base_headers]))
+        
       if (response.code == 200)
         #@@logger.debug(response.body)
         data = JSON.parse(response.body)
@@ -126,11 +230,6 @@ module Qpx
       end  
     end
     
-    
-    def euro_usd_rate
-      loadCurrencies if (@last_currencies_load_time.nil? or Time.new - @last_currencies_load_time > 60*60*24)
-      @@config[:mongo_db][@@config[:mongo_currencies_coll]].find({currency: 'USD'}).to_a[0]['rate'].to_f
-    end
     
     
     def parseResponse(data)
@@ -155,86 +254,30 @@ module Qpx
             start_city: start_airport_data['city'],  
             end_city: end_airport_data['city'],
             end_country: end_airport_data['country'], 
-            price: trip['saleTotal'].sub('EUR','').to_f,#(trip['saleTotal'].sub('USD','').to_f/euro_usd_rate).round(2),
-            places_availables: 10, # WHAT IS THIS ? Can't Find it
-            about:'', # WHAT IS THIS ?
+            price: trip['saleTotal'].sub('EUR','').to_f,#(trip['saleTotal'].sub('USD','').to_f/self.euro_usd_rate).round(2),
+            places_availables: @@config[:place_availables_mean], # Use a mean
+            about:'', # Description on town
             departure: Time.parse(firstLeg['departureTime']),
             arrival: Time.parse(lastLeg['arrivalTime']),
             stopover: trip['slice'].inject(0) {|sum, slice| sum + slice['segment'].length },
             company: first_company,
             lowcost: false,
-            type: '', # WHAT IS THIS ?
+            type: 'air', # Evol
             start_airport: start_airport_data['name'],
             start_airport_code: start_airport_code,
             end_airport_code: end_airport_code,
             end_airport: end_airport_data['city'],
             coordinates: [end_airport_data['longitude'],end_airport_data['latitude']],
-            title:'', # WHAT IS THIS ?
-            prefered: false,# WHAT IS THIS ?
-            start_time:'', # WHAT IS THIS ?
-            end_time:'', # WHAT IS THIS ?
-            duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }
+            title:'', # Evol
+            prefered: false,
+            start_time: Time.parse(firstLeg['departureTime']).to_f,
+            end_time: Time.parse(lastLeg['arrivalTime']).to_f,
+            duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] } #Can be computed again from start_time and end_time
             })
         end
       end
     end
     
-    ####################################### General Data Loading ####################################
     
-    def loadCurrencies()
-      @@logger.info("Loading Central European Bank Euro conversion rates.")
-      response = RestClient.get @@config[:currencies_url]
-      xml = Nokogiri::XML(response.body)
-      @@config[:mongo_db][@@config[:mongo_currencies_coll]].remove
-      xml.search('Cube/Cube/Cube').each do |currency|
-        @@config[:mongo_db][@@config[:mongo_currencies_coll]].insert({currency: currency['currency'], rate: currency['rate']})
-        #puts currency['currency'],currency['rate']
-      end
-      @last_currencies_load_time = Time.new
-    end    
-    
-    def loadAirlinesData()
-      @@config[:mongo_db][@@config[:mongo_airlines_coll]].remove     
-      File.open(@@config[:airlines_filepath], "r") do |f|
-        f.each_line do |line|
-          #id,name,alias,iata_code,icao_code,call_sign,country,active
-          fields = line.split(',')
-          @@config[:mongo_db][@@config[:mongo_airlines_coll]].insert({
-             name:                fields[1].gsub('"',''),
-             alias:               fields[2].gsub('"',''),
-             iata_code:           fields[3].gsub('"',''),
-             icao_code:           fields[4].gsub('"',''),
-             call_sign:           fields[5].gsub('"',''),
-             country:             fields[6].gsub('"',''),
-             active:              fields[7].gsub('"','')
-          })
-        end
-      end
-    end
-
-
-    def loadAirportsData()
-      @@config[:mongo_db][@@config[:mongo_airports_coll]].remove
-      File.open(@@config[:airports_filepath], "r") do |f|
-        f.each_line do |line|
-          #id,name,city,country,iataCode,icao,latitude,longitude,altitude,utc_timezone_offset,daily_save_time,timezone
-          fields = line.split(',')
-          @@config[:mongo_db][@@config[:mongo_airports_coll]].insert({
-             name:                fields[1].gsub('"',''),
-             city:                fields[2].gsub('"',''),
-             country:             fields[3].gsub('"',''),
-             iata_code:           fields[4].gsub('"',''),
-             icao:                fields[5].gsub('"',''),
-             latitude:            fields[6].to_f,
-             longitude:           fields[7].to_f,
-             altitude:            fields[8].to_f,
-             utc_timezone_offset: fields[9].to_f,
-             daily_save_time:     fields[10].gsub('"',''),
-             timezone:            fields[11].gsub('"','')
-          })
-        end
-      end
-    end
-
   end
 end

@@ -22,8 +22,8 @@
     ],
     "title" : "",
     "prefered" : false,
-    "start_time" : null,
-    "end_time" : null,
+    "start_time" : Epoc Unix Min (or sec),
+    "end_time" : Epoc Unix Min (or sec)),
     "duration" : 100,
     "updated_at" : ISODate("2014-10-05T14:05:39.616Z"),
     "created_at" : ISODate("2014-10-05T13:51:14.891Z")
