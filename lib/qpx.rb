@@ -31,6 +31,7 @@ module Qpx
       :mongo_currencies_coll => 'currencies',
       :mongo_airports_coll => 'airports',
       :mongo_airlines_coll => 'airlines',
+      :mongo_travels_coll => 'airlines',
       :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
       :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__)
       
@@ -149,7 +150,7 @@ module Qpx
           start_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: start_airport_code}).to_a[0]
           end_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: end_airport_code}).to_a[0]
           first_company = @@config[:mongo_db][@@config[:mongo_airlines_coll]].find({iata_code: firstSegment['flight']['carrier']}).to_a[0]['name']
-          grapyTrip = {
+          @@config[:mongo_db][@@config[:mongo_travels_coll].insert({
             start_city: start_airport_data['city'],  
             end_city: end_airport_data['city'],
             end_country: end_airport_data['country'], 
@@ -172,8 +173,7 @@ module Qpx
             start_time:'', # WHAT IS THIS ?
             end_time:'', # WHAT IS THIS ?
             duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }
-          }
-          puts grapyTrip.inspect
+            })
         end
       end
       trips
