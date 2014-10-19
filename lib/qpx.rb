@@ -31,7 +31,7 @@ module Qpx
       :mongo_currencies_coll => 'currencies',
       :mongo_airports_coll => 'airports',
       :mongo_airlines_coll => 'airlines',
-      :mongo_travels_coll => 'airlines',
+      :mongo_travels_coll => 'travels',
       :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
       :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__)
       
@@ -79,6 +79,8 @@ module Qpx
       puts "QPX Api Initialized"
     end
 
+
+    ####################################### API Calls ####################################
     def search_trips(departure_code, arrival_code, outbound_date, inbound_date, adults_count,max_price=600)
       json_post_body = %Q!
       {
@@ -110,7 +112,7 @@ module Qpx
           },
           "maxPrice": "EUR#{max_price}",
           "saleCountry": "FR",
-          "solutions": 2,
+          "solutions": 20,
           "refundable": false
         }
       }
@@ -134,7 +136,6 @@ module Qpx
     def parseResponse(data)
       #@@logger.debug(data)
       unless data.nil? or data == {}
-        
         #aircrafts = data['trips']['data']['aircraft']
         #taxes     = data['trips']['data']['tax']
         #carriers  = data['trips']['data']['carrier']
@@ -150,7 +151,7 @@ module Qpx
           start_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: start_airport_code}).to_a[0]
           end_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: end_airport_code}).to_a[0]
           first_company = @@config[:mongo_db][@@config[:mongo_airlines_coll]].find({iata_code: firstSegment['flight']['carrier']}).to_a[0]['name']
-          @@config[:mongo_db][@@config[:mongo_travels_coll].insert({
+          @@config[:mongo_db][@@config[:mongo_travels_coll]].insert({
             start_city: start_airport_data['city'],  
             end_city: end_airport_data['city'],
             end_country: end_airport_data['country'], 
@@ -176,9 +177,9 @@ module Qpx
             })
         end
       end
-      trips
     end
     
+    ####################################### General Data Loading ####################################
     
     def loadCurrencies()
       @@logger.info("Loading Central European Bank Euro conversion rates.")
