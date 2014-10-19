@@ -30,7 +30,10 @@ module Qpx
       :mongo_db_name => 'grappes_development',
       :mongo_currencies_coll => 'currencies',
       :mongo_airports_coll => 'airports',
-      :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__)
+      :mongo_airlines_coll => 'airlines',
+      :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
+      :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__)
+      
       
     }
 
@@ -118,37 +121,9 @@ module Qpx
         data = JSON.parse(response.body)
         parseResponse(data)
       end  
-      
     end
     
     
-=begin
-    "start_city" : "Paris",
-    "end_city" : "Casablanca",
-    "end_country" : "Maroc",
-    "price" : 200,
-    "places_available" : 20,
-    "about" : "about",
-    "departure" : ISODate("2014-10-07T20:40:00.000Z"),
-    "arrival" : ISODate("2014-10-07T21:40:00.000Z"),
-    "stopover" : 1,
-    "company" : "Easy Jet",
-    "lowcost" : false,
-    "type" : "",
-    "start_airport" : "Paris Charles de Gaule",
-    "start_airport_code" : "CDG",
-    "end_airport_code" : "CMN",
-    "end_airport" : "Casablanca",
-    "coordinates" : [ 
-        -7.589722, 
-        33.367222
-    ],
-    "title" : "",
-    "prefered" : false,
-    "start_time" : null,
-    "end_time" : null,
-    "duration" : 100,
-=end
     def euro_usd_rate
       loadCurrencies if (@last_currencies_load_time.nil? or Time.new - @last_currencies_load_time > 60*60*24)
       @@config[:mongo_db][@@config[:mongo_currencies_coll]].find({currency: 'USD'}).to_a[0]['rate'].to_f
@@ -173,28 +148,29 @@ module Qpx
           end_airport_code    = lastLeg['destination']
           start_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: start_airport_code}).to_a[0]
           end_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: end_airport_code}).to_a[0]
+          first_company = @@config[:mongo_db][@@config[:mongo_airlines_coll]].find({iata_code: firstSegment['flight']['carrier']}).to_a[0]['name']
           grapyTrip = {
             start_city: start_airport_data['city'],  
             end_city: end_airport_data['city'],
             end_country: end_airport_data['country'], 
             price: trip['saleTotal'].sub('EUR','').to_f,#(trip['saleTotal'].sub('USD','').to_f/euro_usd_rate).round(2),
-            places_availables:'',
-            about:'',
+            places_availables: 10, # WHAT IS THIS ? Can't Find it
+            about:'', # WHAT IS THIS ?
             departure: Time.parse(firstLeg['departureTime']),
             arrival: Time.parse(lastLeg['arrivalTime']),
             stopover: trip['slice'].inject(0) {|sum, slice| sum + slice['segment'].length },
-            company: firstSegment['flight']['carrier'],
+            company: first_company,
             lowcost: false,
-            type: '',
+            type: '', # WHAT IS THIS ?
             start_airport: start_airport_data['name'],
             start_airport_code: start_airport_code,
             end_airport_code: end_airport_code,
             end_airport: end_airport_data['city'],
             coordinates: [end_airport_data['longitude'],end_airport_data['latitude']],
-            title:'',
+            title:'', # WHAT IS THIS ?
             prefered: false,# WHAT IS THIS ?
-            start_time:'',
-            end_time:'',
+            start_time:'', # WHAT IS THIS ?
+            end_time:'', # WHAT IS THIS ?
             duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }
           }
           puts grapyTrip.inspect
@@ -202,6 +178,7 @@ module Qpx
       end
       trips
     end
+    
     
     def loadCurrencies()
       @@logger.info("Loading Central European Bank Euro conversion rates.")
@@ -213,9 +190,30 @@ module Qpx
         #puts currency['currency'],currency['rate']
       end
       @last_currencies_load_time = Time.new
+    end    
+    
+    def loadAirlinesData()
+      @@config[:mongo_db][@@config[:mongo_airlines_coll]].remove     
+      File.open(@@config[:airlines_filepath], "r") do |f|
+        f.each_line do |line|
+          #id,name,alias,iata_code,icao_code,call_sign,country,active
+          fields = line.split(',')
+          @@config[:mongo_db][@@config[:mongo_airlines_coll]].insert({
+             name:                fields[1].gsub('"',''),
+             alias:               fields[2].gsub('"',''),
+             iata_code:           fields[3].gsub('"',''),
+             icao_code:           fields[4].gsub('"',''),
+             call_sign:           fields[5].gsub('"',''),
+             country:             fields[6].gsub('"',''),
+             active:              fields[7].gsub('"','')
+          })
+        end
+      end
     end
 
-    def loadIATAData()
+
+    def loadAirportsData()
+      @@config[:mongo_db][@@config[:mongo_airports_coll]].remove
       File.open(@@config[:airports_filepath], "r") do |f|
         f.each_line do |line|
           #id,name,city,country,iataCode,icao,latitude,longitude,altitude,utc_timezone_offset,daily_save_time,timezone
