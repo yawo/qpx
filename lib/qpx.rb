@@ -41,7 +41,7 @@ module Qpx
       opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
       @@config[:base_params] = {key: @@config[:server_api_key],
         #fields: 'trips/tripOption'
-        fields: 'trips/tripOption(saleTotal,slice(duration,segment(flight)))'
+        fields: 'trips/tripOption(saleTotal,slice(duration,segment))'
       }
       @@config[:mongo_db] = Mongo::MongoClient.new(@@config[:mongo_host], @@config[:mongo_port]).db(@@config[:mongo_db_name])
       @@config[:mongo_db].authenticate(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
@@ -105,6 +105,7 @@ module Qpx
             "seniorCount": 0
           },
           "maxPrice": "EUR#{max_price}",
+          "saleCountry": "FR",
           "solutions": 2,
           "refundable": false
         }
@@ -148,25 +149,62 @@ module Qpx
     "end_time" : null,
     "duration" : 100,
 =end
-    
+    def euro_usd_rate
+      loadCurrencies if (@last_currencies_load_time.nil? or Time.new - @last_currencies_load_time > 60*60*24)
+      @@config[:mongo_db][@@config[:mongo_currencies_coll]].find({currency: 'USD'}).to_a[0]['rate'].to_f
+    end
     
     
     def parseResponse(data)
-      @@logger.debug(data)
+      #@@logger.debug(data)
       unless data.nil? or data == {}
+        
         #aircrafts = data['trips']['data']['aircraft']
         #taxes     = data['trips']['data']['tax']
         #carriers  = data['trips']['data']['carrier']
         #airports  = data['trips']['data']['airport']
         trips     = data['trips']['tripOption']
         trips.each do |trip|
-          grapyTrip = {}
-          
+          firstSegment = trip['slice'].first['segment'].first
+          lastSegment = trip['slice'].last['segment'].last
+          firstLeg = firstSegment['leg'].first
+          lastLeg  = lastSegment['leg'].last
+          start_airport_code  = firstLeg['origin']
+          end_airport_code    = lastLeg['destination']
+          start_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: start_airport_code}).to_a[0]
+          end_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: end_airport_code}).to_a[0]
+          grapyTrip = {
+            start_city: start_airport_data['city'],  
+            end_city: end_airport_data['city'],
+            end_country: end_airport_data['country'], 
+            price: trip['saleTotal'].sub('EUR','').to_f,#(trip['saleTotal'].sub('USD','').to_f/euro_usd_rate).round(2),
+            places_availables:'',
+            about:'',
+            departure: Time.parse(firstLeg['departureTime']),
+            arrival: Time.parse(lastLeg['arrivalTime']),
+            stopover: trip['slice'].inject(0) {|sum, slice| sum + slice['segment'].length },
+            company: firstSegment['flight']['carrier'],
+            lowcost: false,
+            type: '',
+            start_airport: start_airport_data['name'],
+            start_airport_code: start_airport_code,
+            end_airport_code: end_airport_code,
+            end_airport: end_airport_data['city'],
+            coordinates: [end_airport_data['longitude'],end_airport_data['latitude']],
+            title:'',
+            prefered: false,# WHAT IS THIS ?
+            start_time:'',
+            end_time:'',
+            duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }
+          }
+          puts grapyTrip.inspect
         end
       end
+      trips
     end
     
     def loadCurrencies()
+      @@logger.info("Loading Central European Bank Euro conversion rates.")
       response = RestClient.get @@config[:currencies_url]
       xml = Nokogiri::XML(response.body)
       @@config[:mongo_db][@@config[:mongo_currencies_coll]].remove
@@ -174,6 +212,7 @@ module Qpx
         @@config[:mongo_db][@@config[:mongo_currencies_coll]].insert({currency: currency['currency'], rate: currency['rate']})
         #puts currency['currency'],currency['rate']
       end
+      @last_currencies_load_time = Time.new
     end
 
     def loadIATAData()
