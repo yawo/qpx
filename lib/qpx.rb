@@ -17,7 +17,7 @@ module Qpx
     @@logger.level = Logger::DEBUG
     # Configuration defaults
     @@config = {
-      :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc','test1','test2'] ,
+      :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc'] ,
       :base_headers => {content_type: :json, accept_encoding: :gzip, user_agent: :qpx_gem}, #, accept: :json
       :trips_url => 'https://www.googleapis.com/qpxExpress/v1/trips/search',
       :currencies_url => 'http://www.ecb.int/stats/eurofxref/eurofxref-daily.xml',
@@ -33,7 +33,8 @@ module Qpx
       :mongo_server_apikeys_coll => 'server_apikeys',
       :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
       :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__),
-      :place_availables_mean => 10          
+      :place_availables_mean => 10,
+      :max_solutions => 20          
     }   
     
     def self.config
@@ -51,10 +52,11 @@ module Qpx
      
     ####################################### General Data Loading #################################### 
     def self.loadCurrencies()
+      return if @@config[:mongo_db][@@config[:mongo_currencies_coll]].count > 0 
       @@logger.info("ReLoading Central European Bank Euro conversion rates.")
       response = RestClient.get @@config[:currencies_url]
       xml = Nokogiri::XML(response.body)
-      @@config[:mongo_db][@@config[:mongo_currencies_coll]].remove
+      
       xml.search('Cube/Cube/Cube').each do |currency|
         @@config[:mongo_db][@@config[:mongo_currencies_coll]].insert({currency: currency['currency'], rate: currency['rate']})
         #puts currency['currency'],currency['rate']
@@ -63,8 +65,8 @@ module Qpx
     end    
     
     def self.loadAirlinesData()
+      return if @@config[:mongo_db][@@config[:mongo_airlines_coll]].count > 0     
       @@logger.info("ReLoading Airlines Data.")
-      @@config[:mongo_db][@@config[:mongo_airlines_coll]].remove     
       File.open(@@config[:airlines_filepath], "r") do |f|
         f.each_line do |line|
           #id,name,alias,iata_code,icao_code,call_sign,country,active
@@ -84,8 +86,8 @@ module Qpx
 
 
     def self.loadAirportsData()
+      return if @@config[:mongo_db][@@config[:mongo_airports_coll]].count > 0
       @@logger.info("ReLoading Airports Data.")
-      @@config[:mongo_db][@@config[:mongo_airports_coll]].remove
       File.open(@@config[:airports_filepath], "r") do |f|
         f.each_line do |line|
           #id,name,city,country,iataCode,icao,latitude,longitude,altitude,utc_timezone_offset,daily_save_time,timezone
@@ -108,8 +110,8 @@ module Qpx
     end
     
     def self.loadServerApiKeys()
+      return if @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].count > 0
       @@logger.info("ReLoading Server Api Keys")
-      @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].remove
       @@config[:server_api_keys].each do |apikey|
          @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].insert({
            key:             apikey,
@@ -134,7 +136,12 @@ module Qpx
         update: {'$set' => {last_call_date: current_date}, '$inc' => {day_api_calls: 1}},
         fields: {key: 1}
       })
-      next_key['key'] unless next_key.nil? or next_key.empty?
+      if next_key.nil? or next_key.empty?
+        next_key['key'] 
+      else
+        @@logger.error("No available Api Keys found")
+        nil
+      end
     end
     
     def self.euro_usd_rate
@@ -210,7 +217,7 @@ module Qpx
           },
           "maxPrice": "EUR#{max_price}",
           "saleCountry": "FR",
-          "solutions": 20,
+          "solutions": #{@@config[:max_solutions]},
           "refundable": false
         }
       }
@@ -278,6 +285,15 @@ module Qpx
       end
     end
     
-    
+    def multi_search_trips(departure_code, outbound_date, inbound_date, adults_count,max_price=600)
+      first_class_arrivals = @@config[:mongo_db][@@config[:mongo_airports_coll]].find(
+        {first_class: true, iata_code: {'$ne' => departure_code}},
+        fields: {iata_code: 1, _id: 0}
+      ).to_a
+      first_class_arrivals.each do | first_class_arrival | 
+        "Searching #{departure_code} --> #{first_class_arrival['iata_code']} ..."
+        search_trips(departure_code, first_class_arrival['iata_code'], outbound_date, inbound_date, adults_count,max_price)
+      end
+    end
   end
 end
