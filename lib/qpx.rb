@@ -17,7 +17,7 @@ module Qpx
     @@logger.level = Logger::DEBUG
     # Configuration defaults
     @@config = {
-      :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc'] ,
+      :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc','AIzaSyBjULg8APtSAe8qVmiMKQbqJBnR5DMkuU8','AIzaSyADFCXgCV-TG3eIX8fA8TmQWdOgckkhz3E','AIzaSyBXSBWXFCik8w_HjGECO7BUsxk1vilyiRE'] ,
       :base_headers => {content_type: :json, accept_encoding: :gzip, user_agent: :qpx_gem}, #, accept: :json
       :trips_url => 'https://www.googleapis.com/qpxExpress/v1/trips/search',
       :currencies_url => 'http://www.ecb.int/stats/eurofxref/eurofxref-daily.xml',
