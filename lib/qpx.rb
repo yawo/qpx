@@ -182,7 +182,7 @@ module Qpx
     end
 
     #Configure defaults
-    self.configure
+    #self.configure
 
 
     ####################################### API Calls ####################################
