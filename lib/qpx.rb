@@ -182,11 +182,11 @@ module Qpx
     end
 
     #Configure defaults
-    self.configure
+    #self.configure
 
 
     ####################################### API Calls ####################################
-    def search_trips(departure_code, arrival_code, outbound_date, inbound_date, adults_count,max_price=600)
+    def self.search_trips(departure_code, arrival_code, outbound_date, inbound_date, adults_count,max_price=600)
       json_post_body = %Q!
       {
         "request": {
@@ -233,13 +233,13 @@ module Qpx
       if (response.code == 200)
         #@@logger.debug(response.body)
         data = JSON.parse(response.body)
-        parseResponse(data)
+        self.parseResponse(data)
       end  
     end
     
     
     
-    def parseResponse(data)
+    def self.parseResponse(data)
       #@@logger.debug(data)
       unless data.nil? or data == {}
         #aircrafts = data['trips']['data']['aircraft']
@@ -287,14 +287,14 @@ module Qpx
       end
     end
     
-    def multi_search_trips(departure_code, outbound_date, inbound_date, adults_count,max_price=600)
+    def self.multi_search_trips(departure_code, outbound_date, inbound_date, adults_count,max_price=600)
       first_class_arrivals = @@config[:mongo_db][@@config[:mongo_airports_coll]].find(
         {first_class: true, iata_code: {'$ne' => departure_code}},
         fields: {iata_code: 1, _id: 0}
       ).to_a
       first_class_arrivals.each do | first_class_arrival | 
         puts "Searching #{departure_code} --> #{first_class_arrival['iata_code']} ..."
-        search_trips(departure_code, first_class_arrival['iata_code'], outbound_date, inbound_date, adults_count,max_price)
+        self.search_trips(departure_code, first_class_arrival['iata_code'], outbound_date, inbound_date, adults_count,max_price)
       end
       "Done. #{first_class_arrivals.count} routes searched."
     end
