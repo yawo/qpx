@@ -109,7 +109,7 @@ module Qpx
              daily_save_time:     fields[10].gsub('"',''),
              timezone:            fields[11].gsub('"',''),
              priority:            (fields[1].gsub('"','')=='All Airports')?1:0,
-          })
+          }) unless fields[4].gsub('"','').lstrip =='' #avoid airport without iata code. its useless.
         end
       end
     end
