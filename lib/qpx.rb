@@ -17,7 +17,7 @@ module Qpx
     @@logger.level = Logger::DEBUG
     # Configuration defaults
     @@config = {
-      :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc','AIzaSyBjULg8APtSAe8qVmiMKQbqJBnR5DMkuU8','AIzaSyADFCXgCV-TG3eIX8fA8TmQWdOgckkhz3E','AIzaSyBXSBWXFCik8w_HjGECO7BUsxk1vilyiRE'] ,
+      :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc','AIzaSyBjULg8APtSAe8qVmiMKQbqJBnR5DMkuU8','AIzaSyADFCXgCV-TG3eIX8fA8TmQWdOgckkhz3E','AIzaSyBXSBWXFCik8w_HjGECO7BUsxk1vilyiRE','AIzaSyBBRqrad-v_VIOHijWyVihVJnN1ksZiOZs'] ,
       :base_headers => {content_type: :json, accept_encoding: :gzip, user_agent: :qpx_gem}, #, accept: :json
       :trips_url => 'https://www.googleapis.com/qpxExpress/v1/trips/search',
       :currencies_url => 'http://www.ecb.int/stats/eurofxref/eurofxref-daily.xml',
@@ -34,9 +34,9 @@ module Qpx
       :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
       :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__),
       :place_availables_mean => 10,
-      :max_solutions => 30          
-    }   
-    
+      :max_solutions => 30
+    }
+
     def self.config
       @@config
     end
@@ -48,24 +48,24 @@ module Qpx
     def initialize()
       puts "QPX Api Initialized"
     end
-    
-     
-    ####################################### General Data Loading #################################### 
+
+
+    ####################################### General Data Loading ####################################
     def self.loadCurrencies()
-      return if @@config[:mongo_db][@@config[:mongo_currencies_coll]].find.count > 0 
+      return if @@config[:mongo_db][@@config[:mongo_currencies_coll]].find.count > 0
       @@logger.info("ReLoading Central European Bank Euro conversion rates.")
       response = RestClient.get @@config[:currencies_url]
       xml = Nokogiri::XML(response.body)
-      
+
       xml.search('Cube/Cube/Cube').each do |currency|
         @@config[:mongo_db][@@config[:mongo_currencies_coll]].insert({currency: currency['currency'], rate: currency['rate']})
         #puts currency['currency'],currency['rate']
       end
       @@last_currencies_load_time = Time.new
-    end    
-    
+    end
+
     def self.loadAirlinesData()
-      return if @@config[:mongo_db][@@config[:mongo_airlines_coll]].find.count > 0     
+      return if @@config[:mongo_db][@@config[:mongo_airlines_coll]].find.count > 0
       @@logger.info("ReLoading Airlines Data.")
       File.open(@@config[:airlines_filepath], "r") do |f|
         f.each_line do |line|
@@ -104,12 +104,12 @@ module Qpx
              utc_timezone_offset: fields[9].to_f,
              daily_save_time:     fields[10].gsub('"',''),
              timezone:            fields[11].gsub('"',''),
-             priority:            (fields[1].gsub('"','')=='All Airports')?1:0, 
+             priority:            (fields[1].gsub('"','')=='All Airports')?1:0,
           })
         end
       end
     end
-    
+
     def self.loadServerApiKeys()
       return if @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].find.count > 0
       @@logger.info("ReLoading Server Api Keys")
@@ -117,14 +117,14 @@ module Qpx
          @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]].insert({
            key:             apikey,
            last_call_date:  Time.now.to_date.to_time ,
-           day_api_calls:   0 
+           day_api_calls:   0
          })
       end
     end
-    
-    
+
+
     def self.next_server_api_key()
-      current_date = Time.now.to_date.to_time 
+      current_date = Time.now.to_date.to_time
       #Update previous days calls
       @@config[:mongo_db][@@config[:mongo_server_apikeys_coll]]
       .find({last_call_date:  {'$lt' => current_date}})
@@ -138,19 +138,19 @@ module Qpx
         @@logger.error("No available Api Keys found")
         nil
       else
-        next_key['key'] 
+        next_key['key']
       end
     end
-    
+
     def self.euro_usd_rate
       loadCurrencies if (@@last_currencies_load_time.nil? or Time.new - @@last_currencies_load_time > 60*60*24)
       @@config[:mongo_db][@@config[:mongo_currencies_coll]].find({currency: 'USD'}).to_a[0]['rate'].to_f
     end
-    
-    
 
 
-    ####################################### Configuration Helpers ####################################    
+
+
+    ####################################### Configuration Helpers ####################################
     @valid_config_keys = @@config.keys
 
     # Configure through hash
@@ -167,13 +167,13 @@ module Qpx
         arrival:             1,
         company:             1 } ,{ unique: true, dropDups: true, sparse: true })
       #@@config[:mongo_db].authenticate(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
-      
-      opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }        
+
+      opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
       #Load general Data
       self.loadCurrencies
       self.loadAirlinesData
       self.loadAirportsData
-      self.loadServerApiKeys   
+      self.loadServerApiKeys
       'QPX is Configured and ready !'
     end
 
@@ -237,16 +237,16 @@ module Qpx
             fields: 'trips/tripOption(saleTotal,slice(duration,segment))'
           }
         }.merge(@@config[:base_headers]))
-        
+
       if (response.code == 200)
         #@@logger.debug(response.body)
         data = JSON.parse(response.body)
         self.parseResponse(data)
-      end  
+      end
     end
-    
-    
-    
+
+
+
     def self.parseResponse(data)
       #@@logger.debug(data)
       unless data.nil? or data == {}
@@ -268,9 +268,9 @@ module Qpx
           first_company = @@config[:mongo_db][@@config[:mongo_airlines_coll]].find({iata_code: firstSegment['flight']['carrier']}).to_a[0]['name']
           begin
             @@config[:mongo_db][@@config[:mongo_travels_coll]].insert({
-              start_city: start_airport_data['city'],  
+              start_city: start_airport_data['city'],
               end_city: end_airport_data['city'],
-              end_country: end_airport_data['country'], 
+              end_country: end_airport_data['country'],
               price: trip['saleTotal'].sub('EUR','').to_f,#(trip['saleTotal'].sub('USD','').to_f/self.euro_usd_rate).round(2),
               places_availables: @@config[:place_availables_mean], # Use a mean
               about:'', # Description on town
@@ -293,31 +293,31 @@ module Qpx
               search_date: Time.now
               })
           rescue Moped::Errors::OperationFailure => e
-            @@logger.error('Insertion error. may be data is duplicated.')            
+            @@logger.error('Insertion error. may be data is duplicated.')
           end
         end
       end
     end
-    
+
     def self.multi_search_trips(departure_code, outbound_date, inbound_date, adults_count,max_price=600)
       first_class_arrivals = @@config[:mongo_db][@@config[:mongo_airports_coll]].find(
         {first_class: true, iata_code: {'$nin' => [nil,'',departure_code]}}).select(iata_code: 1, _id: 0)
-      first_class_arrivals.each do | first_class_arrival | 
+      first_class_arrivals.each do | first_class_arrival |
         puts "Searching #{departure_code} --> #{first_class_arrival['iata_code']} ..."
         self.search_trips(departure_code, first_class_arrival['iata_code'], outbound_date, inbound_date, adults_count,max_price)
       end
       "Done. #{first_class_arrivals.count} routes searched."
     end
-    
+
     def self.multi_search_trips_by_city(departure_city, outbound_date, inbound_date, adults_count,max_price=600)
       departure_code = nil
       departure_code = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: departure_city,iata_code: {'$nin' => [nil,'']}}).sort({priority: -1}).limit(1).one
       if departure_code.nil?
         @@logger.warn "No airport found for city #{departure_city}"
       else
-        self.multi_search_trips(departure_code['iata_code'], outbound_date, inbound_date, adults_count,max_price) 
+        self.multi_search_trips(departure_code['iata_code'], outbound_date, inbound_date, adults_count,max_price)
       end
     end
-    
+
   end
 end
