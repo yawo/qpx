@@ -15,6 +15,10 @@ module Qpx
 
     @@logger = Logger.new(STDOUT)
     @@logger.level = Logger::DEBUG
+    logger.formatter = proc do |severity, datetime, progname, msg|
+        "#{datetime}[QPX/#{progname}]- #{severity}: #{msg}\n"
+    end
+    end
     # Configuration defaults
     @@config = {
       :server_api_keys => ['AIzaSyAGqlwSGMAOzmruUUQjrGI-O2VjJzWnxoc','AIzaSyBjULg8APtSAe8qVmiMKQbqJBnR5DMkuU8','AIzaSyADFCXgCV-TG3eIX8fA8TmQWdOgckkhz3E','AIzaSyBXSBWXFCik8w_HjGECO7BUsxk1vilyiRE','AIzaSyBBRqrad-v_VIOHijWyVihVJnN1ksZiOZs'] ,
