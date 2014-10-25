@@ -36,8 +36,8 @@ module Qpx
       :mongo_server_apikeys_coll => 'server_apikeys',
       :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
       :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__),
-      :place_availables_mean => 10,
-      :max_solutions => 30
+      :place_availables_mean => 5,
+      :max_solutions => 20
     }
 
     def self.config
@@ -169,7 +169,10 @@ module Qpx
         price:               1,
         departure:           1,
         arrival:             1,
-        company:             1 } ,{ unique: true, dropDups: true, sparse: true })
+        duration:            1,
+        stopover:            1,
+        company:             1 } ,
+        { unique: true, dropDups: true, sparse: true })
       #@@config[:mongo_db].authenticate(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
 
       opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
@@ -267,10 +270,12 @@ module Qpx
         trips.each do |trip|
           firstSegment = trip['slice'].first['segment'].first
           lastSegment = trip['slice'].last['segment'].last
+          firstSliceLastSegment = trip['slice'].first['segment'].last
           firstLeg = firstSegment['leg'].first
           lastLeg  = lastSegment['leg'].last
+          firstSliceLastLeg  = firstSliceLastSegment['leg'].last
           start_airport_code  = firstLeg['origin']
-          end_airport_code    = lastLeg['destination']
+          end_airport_code    = firstSliceLastLeg['destination']
           start_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: start_airport_code}).to_a[0]
           end_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: end_airport_code}).to_a[0]
           first_company = @@config[:mongo_db][@@config[:mongo_airlines_coll]].find({iata_code: firstSegment['flight']['carrier']}).to_a[0]['name']
