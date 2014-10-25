@@ -15,9 +15,8 @@ module Qpx
 
     @@logger = Logger.new(STDOUT)
     @@logger.level = Logger::DEBUG
-    logger.formatter = proc do |severity, datetime, progname, msg|
+    @@logger.formatter = proc do |severity, datetime, progname, msg|
         "#{datetime}[QPX/#{progname}]- #{severity}: #{msg}\n"
-    end
     end
     # Configuration defaults
     @@config = {
@@ -250,7 +249,7 @@ module Qpx
           self.parseResponse(data)
         end
       rescue Exception => e
-        @@logger.error e.message
+        @@logger.error( e.message)
       end
     end
 
