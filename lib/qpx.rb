@@ -169,7 +169,6 @@ module Qpx
         price:               1,
         departure:           1,
         arrival:             1,
-        duration:            1,
         stopover:            1,
         company:             1 } ,
         { unique: true, dropDups: true, sparse: true })
