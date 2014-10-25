@@ -236,7 +236,7 @@ module Qpx
         }
       }
       !
-      @@logger.debug(json_post_body)
+      #@@logger.debug(json_post_body)
       begin
         response = RestClient.post(@@config[:trips_url], json_post_body, {
           params: {
