@@ -109,6 +109,7 @@ module Qpx
              daily_save_time:     fields[10].gsub('"',''),
              timezone:            fields[11].gsub('"',''),
              priority:            (fields[1].gsub('"','')=='All Airports')?1:0,
+             first_class:         false
           }) unless fields[4].gsub('"','').lstrip =='' #avoid airport without iata code. its useless.
         end
       end
@@ -304,6 +305,7 @@ module Qpx
     end
 
     def self.multi_search_trips(departure_code, outbound_date, inbound_date, adults_count,max_price=600)
+      @@logger.info "Searching from #{departure_code}"
       first_class_arrivals = @@config[:mongo_db][@@config[:mongo_airports_coll]].find(
         {first_class: true, iata_code: {'$nin' => [nil,'',departure_code]}}).select(iata_code: 1, _id: 0)
       first_class_arrivals.each do | first_class_arrival |
