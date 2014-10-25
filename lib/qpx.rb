@@ -235,18 +235,22 @@ module Qpx
         }
       }
       !
-      #@@logger.debug(json_post_body)
-      response = RestClient.post(@@config[:trips_url], json_post_body, {
+      @@logger.debug(json_post_body)
+      begin
+        response = RestClient.post(@@config[:trips_url], json_post_body, {
           params: {
             key: Qpx::Api.next_server_api_key,
             fields: 'trips/tripOption(saleTotal,slice(duration,segment))'
           }
         }.merge(@@config[:base_headers]))
 
-      if (response.code == 200)
-        #@@logger.debug(response.body)
-        data = JSON.parse(response.body)
-        self.parseResponse(data)
+        if (response.code == 200)
+          #@@logger.debug(response.body)
+          data = JSON.parse(response.body)
+          self.parseResponse(data)
+        end
+      rescue Exception => e
+        @@logger.error e.message
       end
     end
 
