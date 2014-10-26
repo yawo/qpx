@@ -11,7 +11,7 @@ module Qpx
   class Api
 
     RestClient.enable Rack::CommonLogger, STDOUT
-    #RestClient.enable Rack::Cache
+    RestClient.enable Rack::Cache
 
     @@logger = Logger.new(STDOUT)
     @@logger.level = Logger::DEBUG
@@ -160,12 +160,6 @@ module Qpx
     def self.configure(opts = {})
       opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
 
-
-      'QPX is Configured and ready !'
-    end
-
-    def self.connect
-      return if @@config[:mongo_db].present?
       @@config[:mongo_db] = session = Moped::Session.new([@@config[:mongo_url]])
       @@config[:mongo_db].use @@config[:mongo_db_name]
       #Mongo::Connection.new(@@config[:mongo_host], @@config[:mongo_port]).db(@@config[:mongo_db_name])
@@ -186,6 +180,7 @@ module Qpx
       self.loadAirlinesData
       self.loadAirportsData
       self.loadServerApiKeys
+      'QPX is Configured and ready !'
     end
 
     # Configure through yaml file
