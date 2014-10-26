@@ -24,8 +24,7 @@ module Qpx
       :base_headers => {content_type: :json, accept_encoding: :gzip, user_agent: :qpx_gem}, #, accept: :json
       :trips_url => 'https://www.googleapis.com/qpxExpress/v1/trips/search',
       :currencies_url => 'http://www.ecb.int/stats/eurofxref/eurofxref-daily.xml',
-      :mongo_host => 'localhost',
-      :mongo_port => '27017',
+      :mongo_url => 'localhost:27017',
       :mongo_username => nil,
       :mongo_password => nil,
       :mongo_db_name => 'grappes_development',
@@ -159,7 +158,7 @@ module Qpx
 
     # Configure through hash
     def self.configure(opts = {})
-      @@config[:mongo_db] = session = Moped::Session.new(["#{@@config[:mongo_host]}:#{@@config[:mongo_port]}"])
+      @@config[:mongo_db] = session = Moped::Session.new([@config[:mongo_url]])
       @@config[:mongo_db].use @@config[:mongo_db_name]
       #Mongo::Connection.new(@@config[:mongo_host], @@config[:mongo_port]).db(@@config[:mongo_db_name])
       @@config[:mongo_db].login(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
