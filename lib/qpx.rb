@@ -158,7 +158,7 @@ module Qpx
 
     # Configure through hash
     def self.configure(opts = {})
-      @@config[:mongo_db] = session = Moped::Session.new([@config[:mongo_url]])
+      @@config[:mongo_db] = session = Moped::Session.new([@@config[:mongo_url]])
       @@config[:mongo_db].use @@config[:mongo_db_name]
       #Mongo::Connection.new(@@config[:mongo_host], @@config[:mongo_port]).db(@@config[:mongo_db_name])
       @@config[:mongo_db].login(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
