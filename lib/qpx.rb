@@ -158,6 +158,8 @@ module Qpx
 
     # Configure through hash
     def self.configure(opts = {})
+      opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
+
       @@config[:mongo_db] = session = Moped::Session.new([@@config[:mongo_url]])
       @@config[:mongo_db].use @@config[:mongo_db_name]
       #Mongo::Connection.new(@@config[:mongo_host], @@config[:mongo_port]).db(@@config[:mongo_db_name])
@@ -173,7 +175,6 @@ module Qpx
         { unique: true, dropDups: true, sparse: true })
       #@@config[:mongo_db].authenticate(@@config[:mongo_username], @@config[:mongo_password]) unless @@config[:mongo_username].nil?
 
-      opts.each { |k, v| @@config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
       #Load general Data
       self.loadCurrencies
       self.loadAirlinesData
