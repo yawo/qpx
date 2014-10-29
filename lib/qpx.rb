@@ -267,43 +267,43 @@ module Qpx
         trips     = data['trips']['tripOption']
         @@logger.info "#{trips.count} trips found."
         trips.each do |trip|
-          firstSegment = trip['slice'].first['segment'].first
-          lastSegment = trip['slice'].last['segment'].last
+          firstSegment          = trip['slice'].first['segment'].first
+          lastSegment           = trip['slice'].last['segment'].last
           firstSliceLastSegment = trip['slice'].first['segment'].last
-          firstLeg = firstSegment['leg'].first
-          lastLeg  = lastSegment['leg'].last
-          firstSliceLastLeg  = firstSliceLastSegment['leg'].last
-          start_airport_code  = firstLeg['origin']
-          end_airport_code    = firstSliceLastLeg['destination']
-          start_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: start_airport_code}).to_a[0]
-          end_airport_data  = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: end_airport_code}).to_a[0]
-          first_company = @@config[:mongo_db][@@config[:mongo_airlines_coll]].find({iata_code: firstSegment['flight']['carrier']}).to_a[0]['name']
+          firstLeg              = firstSegment['leg'].first
+          lastLeg               = lastSegment['leg'].last
+          firstSliceLastLeg     = firstSliceLastSegment['leg'].last
+          start_airport_code    = firstLeg['origin']
+          end_airport_code      = firstSliceLastLeg['destination']
+          start_airport_data    = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: start_airport_code}).to_a[0]
+          end_airport_data      = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({iata_code: end_airport_code}).to_a[0]
+          first_company         = @@config[:mongo_db][@@config[:mongo_airlines_coll]].find({iata_code: firstSegment['flight']['carrier']}).to_a[0]['name']
           begin
             @@config[:mongo_db][@@config[:mongo_travels_coll]].insert({
-              start_city: start_airport_data['city'],
-              end_city: end_airport_data['city'],
-              end_country: end_airport_data['country'],
-              price: trip['saleTotal'].sub('EUR','').to_f,#(trip['saleTotal'].sub('USD','').to_f/self.euro_usd_rate).round(2),
-              places_availables: @@config[:place_availables_mean], # Use a mean
-              about:'', # Description on town
-              departure: Time.parse(firstLeg['departureTime']),
-              arrival: Time.parse(lastLeg['arrivalTime']),
-              stopover: trip['slice'].inject(0) {|sum, slice| sum + slice['segment'].length },
-              company: first_company,
-              lowcost: false,
-              type: 'air', # Evol
-              start_airport: start_airport_data['name'],
+                      start_city: start_airport_data['city'],
+                        end_city: end_airport_data['city'],
+                     end_country: end_airport_data['country'],
+                           price: trip['saleTotal'].sub('EUR','').to_f,#(trip['saleTotal'].sub('USD','').to_f/self.euro_usd_rate).round(2),
+               places_availables: @@config[:place_availables_mean], # Use a mean
+                           about: '', # Description on town
+                       departure: Time.parse(firstLeg['departureTime']),
+                         arrival: Time.parse(lastLeg['arrivalTime']),
+                        stopover: trip['slice'].inject(0) {|sum, slice| sum + slice['segment'].length },
+                         company: first_company,
+                         lowcost: false,
+                            type: 'air', # Evol
+                   start_airport: start_airport_data['name'],
               start_airport_code: start_airport_code,
-              end_airport_code: end_airport_code,
-              end_airport: end_airport_data['city'],
-              coordinates: [end_airport_data['longitude'],end_airport_data['latitude']],
-              title:'', # Evol
-              prefered: false,
-              start_time: Time.parse(firstLeg['departureTime']).to_f,
-              end_time: Time.parse(lastLeg['arrivalTime']).to_f,
-              duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }, #Can be computed again from start_time and end_time
-              search_date: Time.now
-              })
+                end_airport_code: end_airport_code,
+                     end_airport: end_airport_data['city'],
+                     coordinates: self.city_top_airport(end_airport_data['city']).values_at('longitude','latitude'),
+                           title: '', # Evol
+                        prefered: false,
+                      start_time: Time.parse(firstLeg['departureTime']).strftime('%H.%M').to_f, #conserve current grapy system
+                        end_time: Time.parse(lastLeg['arrivalTime']).strftime('%H.%M').to_f,
+                        duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }, #Can be computed again from start_time and end_time
+                     search_date: Time.now
+                              })
           rescue Moped::Errors::OperationFailure => e
             @@logger.error('Insertion error. may be data is duplicated.')
           end
@@ -323,13 +323,16 @@ module Qpx
     end
 
     def self.multi_search_trips_by_city(departure_city, outbound_date, inbound_date, adults_count,max_price=600)
-      departure_code = nil
-      departure_code = @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: departure_city,iata_code: {'$nin' => [nil,'']}}).sort({priority: -1}).limit(1).one
-      if departure_code.nil?
+      top_airport = self.city_top_airport(departure_city)
+      if top_airport.blank?
         @@logger.warn "No airport found for city #{departure_city}"
       else
-        self.multi_search_trips(departure_code['iata_code'], outbound_date, inbound_date, adults_count,max_price)
+        self.multi_search_trips( top_airport['iata_code'], outbound_date, inbound_date, adults_count,max_price)
       end
+    end
+
+    def self.city_top_airport(city)
+      @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city,iata_code: {'$nin' => [nil,'']}}).sort({priority: -1}).limit(1).one
     end
 
   end
