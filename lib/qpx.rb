@@ -36,7 +36,7 @@ module Qpx
       :airports_filepath => File.expand_path('../../data/airports.dat', __FILE__),
       :airlines_filepath => File.expand_path('../../data/airlines.dat', __FILE__),
       :place_availables_mean => 5,
-      :max_solutions => 20
+      :max_solutions => 3
     }
 
     def self.config
