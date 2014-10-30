@@ -299,8 +299,8 @@ module Qpx
                      coordinates: self.city_top_airport(end_airport_data['city']).values_at('longitude','latitude'),
                            title: '', # Evol
                         prefered: false,
-                      start_time: Time.parse(firstLeg['departureTime']).strftime('%H.%M'), #conserve current grapy system
-                        end_time: Time.parse(lastLeg['arrivalTime']).strftime('%H.%M'),
+                        start_time: Time.parse(firstLeg['departureTime']).strftime('%H.%M').to_f, #conserve current grapy system
+                        end_time: Time.parse(lastLeg['arrivalTime']).strftime('%H.%M').to_f,
                         duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }, #Can be computed again from start_time and end_time
                      search_date: Time.now
                               })
