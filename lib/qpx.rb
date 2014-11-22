@@ -106,7 +106,7 @@ module Qpx
              utc_timezone_offset: fields[9].to_f,
              daily_save_time:     fields[10].gsub('"',''),
              timezone:            fields[11].gsub('"',''),
-             priority:            (fields[1].gsub('"','')=='All Airports')?1:0,
+             city_airport:            (fields[1].gsub('"','')=='All Airports')?1:0,
              first_class:         false
           }) unless fields[4].gsub('"','').lstrip =='' #avoid airport without iata code. its useless.
         end
@@ -325,14 +325,18 @@ module Qpx
     def self.multi_search_trips_by_city(departure_city, outbound_date, inbound_date, adults_count,max_price=600)
       top_airport = self.city_top_airport(departure_city)
       if top_airport.blank?
-        @@logger.warn "No airport found for city #{departure_city}"
+        @@logger.warn "No top airport found for city #{departure_city}; Will search all aiports."
+        @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city, iata_code: {'$nin' => [nil,'']}}).each do |city_airport|
+          self.multi_search_trips( city_airport['iata_code'], outbound_date, inbound_date, adults_count,max_price)
+        end
       else
         self.multi_search_trips( top_airport['iata_code'], outbound_date, inbound_date, adults_count,max_price)
       end
     end
 
     def self.city_top_airport(city)
-      @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city,iata_code: {'$nin' => [nil,'']}}).sort({priority: -1}).limit(1).one
+      #@@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city,iata_code: {'$nin' => [nil,'']}}).sort({priority: -1}).limit(1).one
+      @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city, city_airport: 1, iata_code: {'$nin' => [nil,'']}}).limit(1).one
     end
 
   end
