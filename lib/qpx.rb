@@ -326,13 +326,13 @@ module Qpx
 
     def self.multi_search_trips_by_city(departure_city, outbound_date, inbound_date, adults_count,max_price=600)
       city_airport = self.city_airport(departure_city)
-      if city_airport.blank?
+      if city_airport.nil? or city_airport.empty?
         @@logger.warn "No top airport found for city #{departure_city}; Will search all aiports in the city."
         @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city, iata_code: {'$nin' => [nil,'']}}).each do |any_city_airport|
           self.multi_search_trips( any_city_airport['iata_code'], outbound_date, inbound_date, adults_count,max_price)
         end
       else
-        self.multi_search_trips( top_airport['iata_code'], outbound_date, inbound_date, adults_count,max_price)
+        self.multi_search_trips( city_airport['iata_code'], outbound_date, inbound_date, adults_count,max_price)
       end
     end
 
