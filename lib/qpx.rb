@@ -304,7 +304,7 @@ module Qpx
                         end_time: Time.parse(lastLeg['arrivalTime']).strftime('%H.%M').to_f,
                         duration: trip['slice'].inject(0) { |duration, d| duration + d['duration'] }, #Can be computed again from start_time and end_time
                      search_date: Time.now,
-                      airport_id: city_top_airport._id
+                      airport_id: city_top_airport['_id']
                               })
           rescue Moped::Errors::OperationFailure => e
             @@logger.error('Insertion error. may be data is duplicated.')
