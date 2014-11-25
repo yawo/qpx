@@ -106,7 +106,7 @@ module Qpx
              utc_timezone_offset: fields[9].to_f,
              daily_save_time:     fields[10].gsub('"',''),
              timezone:            fields[11].gsub('"',''),
-             city_airport:            (fields[1].gsub('"','')=='All Airports')?1:0,
+             city_airport:            (fields[1].gsub('"','')=='All Airports')?true:false,
              first_class:         false
           }) unless fields[4].gsub('"','').lstrip =='' #avoid airport without iata code. its useless.
         end
@@ -337,7 +337,7 @@ module Qpx
     end
 
     def self.city_airport(city)
-      @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city, city_airport: 1, iata_code: {'$nin' => [nil,'']}}).limit(1).one
+      @@config[:mongo_db][@@config[:mongo_airports_coll]].find({city: city, city_airport: true, iata_code: {'$nin' => [nil,'']}}).limit(1).one
     end
 
     def self.city_top_airport(city)
